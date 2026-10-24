@@ -1,5 +1,8 @@
 # Atrakcyjne i spokojne miejsca pod Warszawą (2026)
 
+🌐 **Strona:** https://mkcin.github.io/warsaw-forest-towns/
+📦 **Repozytorium:** https://github.com/mkcin/warsaw-forest-towns
+
 Statyczna strona z analizą 20 miejscowości pod Warszawą pod kątem:
 
 - **spokoju i zieleni** wokół działki,
@@ -12,7 +15,9 @@ wykresy cen oraz sekcję dla rodzin z małymi dziećmi.
 
 ## Uruchomienie
 
-Otwórz `index.html` w przeglądarce. Mapa (Leaflet + Esri World Imagery) wymaga internetu.
+Wersja online: https://mkcin.github.io/warsaw-forest-towns/
+
+Lokalnie: otwórz `index.html` w przeglądarce. Mapa (Leaflet + Esri World Imagery) wymaga internetu.
 
 ## Źródła danych
 
