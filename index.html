@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Podwarszawskie „Otwocki" — przegląd miejscowości 2026</title>
+<meta name="description" content="Analiza miejscowości pod Warszawą pod kątem lasu, dojazdu do centrum, infrastruktury i cen działek. Październik 2026.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --ink:#14211a; --ink-soft:#3d4f45; --muted:#6b7d72;
+  --paper:#f7f6f1; --card:#ffffff; --line:#e2e0d6;
+  --green:#1f6b45; --green-2:#2f8f5c; --lime:#c9e265;
+  --amber:#e0a13a; --red:#c4553b; --blue:#2b6c8f;
+  --shadow:0 1px 2px rgba(20,33,26,.06), 0 8px 24px rgba(20,33,26,.06);
+  --r:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{line-height:1.15; margin:0 0 .4em}
+h1{font-size:clamp(30px,4.6vw,54px); letter-spacing:-.02em}
+h2{font-size:clamp(23px,2.6vw,34px); letter-spacing:-.015em}
+h3{font-size:19px}
+p{margin:0 0 1em}
+a{color:var(--green)}
+.wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:11.5px; line-height:1.45}
+
+/* ---------- nav ---------- */
+nav{
+  position:sticky; top:0; z-index:1000; backdrop-filter:blur(10px);
+  background:rgba(247,246,241,.86); border-bottom:1px solid var(--line);
+}
+nav .wrap{display:flex; align-items:center; gap:22px; height:56px; overflow-x:auto}
+nav .brand{font-weight:700; letter-spacing:-.01em; white-space:nowrap}
+nav a{color:var(--ink-soft); text-decoration:none; font-size:14px; white-space:nowrap}
+nav a:hover{color:var(--green)}
+
+/* ---------- hero ---------- */
+header.hero{
+  background:radial-gradient(1200px 600px at 15% -10%, #dceccb 0%, transparent 60%),
+             radial-gradient(900px 500px at 90% 0%, #cfe0e8 0%, transparent 55%),
+             linear-gradient(#f7f6f1,#f7f6f1);
+  border-bottom:1px solid var(--line);
+  padding:64px 0 46px;
+}
+.eyebrow{font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:14px}
+.lead{font-size:clamp(17px,1.7vw,20px); color:var(--ink-soft); max-width:760px}
+.hero-grid{display:grid; grid-template-columns:1.25fr .75fr; gap:38px; align-items:end}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}}
+.kpis{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.kpi{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:16px 16px 14px; box-shadow:var(--shadow)}
+.kpi .n{font-size:28px; font-weight:750; letter-spacing:-.02em; line-height:1}
+.kpi .l{font-size:12px; color:var(--muted); margin-top:6px}
+.badge{display:inline-flex; align-items:center; gap:6px; background:#e8f1e4; color:#1f5a3a; border:1px solid #cfe3c7; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600}
+
+/* ---------- sections ---------- */
+section{padding:56px 0; border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex; align-items:baseline; justify-content:space-between; gap:18px; margin-bottom:22px; flex-wrap:wrap}
+.sec-head p{max-width:640px; color:var(--muted); margin:0}
+
+/* ---------- map ---------- */
+.map-shell{
+  display:grid; grid-template-columns:1fr 330px; gap:0; border:1px solid var(--line);
+  border-radius:var(--r); overflow:hidden; background:var(--card); box-shadow:var(--shadow);
+}
+@media(max-width:950px){.map-shell{grid-template-columns:1fr}}
+#map{height:620px; width:100%; background:#dfe7e2}
+@media(max-width:950px){#map{height:460px}}
+.map-side{border-left:1px solid var(--line); display:flex; flex-direction:column; max-height:620px}
+@media(max-width:950px){.map-side{border-left:none; border-top:1px solid var(--line); max-height:none}}
+.map-side .head{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:700; font-size:14px}
+.map-list{overflow:auto; padding:8px}
+.map-item{
+  display:grid; grid-template-columns:30px 1fr auto; gap:10px; align-items:center;
+  padding:9px 10px; border-radius:10px; cursor:pointer; border:1px solid transparent;
+}
+.map-item:hover{background:#f0f4ec; border-color:var(--line)}
+.map-item .rk{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:750;color:#fff}
+.map-item .nm{font-size:13.5px; font-weight:600; line-height:1.2}
+.map-item .sub{font-size:11px; color:var(--muted)}
+.map-item .sc{font-size:15px; font-weight:750}
+
+.legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:14px; font-size:12px; color:var(--ink-soft)}
+.legend i{display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; vertical-align:-1px}
+
+/* ---------- popup ---------- */
+.leaflet-popup-content{margin:14px 16px; font-family:inherit}
+.pop h4{font-size:15px; margin:0 0 2px}
+.pop .sub{font-size:11.5px; color:var(--muted); margin-bottom:10px}
+.pop .row{display:flex; justify-content:space-between; gap:14px; font-size:12.5px; padding:3px 0; border-bottom:1px dashed #eee}
+.pop .row b{font-weight:700}
+.pop .tag{display:inline-block; font-size:10.5px; background:#eef3ea; border-radius:6px; padding:2px 7px; margin:8px 4px 0 0; color:#2c5740}
+
+/* ---------- ranking table ---------- */
+.controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px}
+button.chip{
+  font:inherit; font-size:13px; padding:7px 13px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--line); background:var(--card); color:var(--ink-soft);
+}
+button.chip[aria-pressed="true"]{background:var(--green); border-color:var(--green); color:#fff; font-weight:600}
+.tablewrap{overflow:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--card); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:900px}
+th,td{padding:11px 12px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+thead th{background:#f2f4ee; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); cursor:pointer; position:sticky; top:0}
+thead th:hover{color:var(--green)}
+tbody tr:hover{background:#fafaf5}
+td .pill{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11.5px; font-weight:650}
+.bar{display:inline-block; height:7px; border-radius:4px; background:var(--green-2); vertical-align:middle; margin-right:7px}
+.score{font-weight:750; font-size:15px}
+.rank{display:inline-grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#eef3ea; font-weight:750; font-size:12px; color:var(--green)}
+tr.top1 .rank{background:var(--green); color:#fff}
+.hidden{display:none}
+
+/* ---------- cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:20px; box-shadow:var(--shadow); display:flex; flex-direction:column}
+.card .top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px}
+.card h3{margin:0}
+.card .where{font-size:12px; color:var(--muted); margin-top:2px}
+.card .big{font-size:30px; font-weight:750; letter-spacing:-.02em; line-height:1; color:var(--green)}
+.card .big small{font-size:12px; font-weight:500; color:var(--muted); letter-spacing:0}
+.card ul{margin:10px 0 0; padding-left:18px; font-size:13.5px}
+.card li{margin-bottom:6px}
+.card .foot{margin-top:auto; padding-top:14px; display:flex; gap:8px; flex-wrap:wrap}
+.chiprow{display:flex; gap:6px; flex-wrap:wrap; margin-top:12px}
+.mini{font-size:11px; background:#f1f3ee; border-radius:6px; padding:3px 8px; color:var(--ink-soft)}
+.mini.warn{background:#fbeee9; color:#96412c}
+.mini.good{background:#e9f3e4; color:#2c6b44}
+
+/* ---------- bars chart ---------- */
+.bars{display:flex; flex-direction:column; gap:9px}
+.brow{display:grid; grid-template-columns:190px 1fr 90px; gap:12px; align-items:center; font-size:13px}
+@media(max-width:620px){.brow{grid-template-columns:120px 1fr 78px}}
+.btrack{height:16px; background:#eceee7; border-radius:8px; overflow:hidden; position:relative}
+.bfill{height:100%; border-radius:8px; background:linear-gradient(90deg,var(--green-2),var(--green))}
+.bfill.over{background:linear-gradient(90deg,#e0a13a,#c4553b)}
+.bval{text-align:right; font-variant-numeric:tabular-nums; font-weight:650}
+
+/* ---------- misc ---------- */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:28px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.callout{background:#eef3e9; border:1px solid #d5e3cd; border-radius:var(--r); padding:20px 22px}
+.callout.warn{background:#fbf1ec; border-color:#f0d6c9}
+.callout h3{margin-top:0}
+.note{font-size:12.5px; color:var(--muted)}
+footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
+.srcline{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px 26px}
+.srcline a{display:block; font-size:12.5px; padding:3px 0}
+.steps{counter-reset:s; list-style:none; padding:0; margin:0}
+.steps li{counter-increment:s; position:relative; padding-left:44px; margin-bottom:16px}
+.steps li:before{content:counter(s); position:absolute; left:0; top:-2px; width:30px; height:30px; border-radius:50%; background:var(--green); color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px}
+.print-only{display:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">🌲 Podwarszawskie Otwocki</span>
+    <a href="#mapa">Mapa</a>
+    <a href="#ranking">Ranking</a>
+    <a href="#karty">Karty miejsc</a>
+    <a href="#ceny">Ceny</a>
+    <a href="#rodzina">Rodzina</a>
+    <a href="#wnioski">Wnioski</a>
+    <a href="#zrodla">Źródła</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Analiza · październik 2026</div>
+      <h1>Gdzie pod Warszawą jest jeszcze las, pociąg i szkoła?</h1>
+      <p class="lead">
+        Szukasz otwockiego Śródborowa: domów w sosnach, ciszy, spacerów bez wychodzenia na ulicę —
+        ale z dojazdem do Śródmieścia poniżej godziny i normalną infrastrukturą dla dwóch małych synów.
+        Przeanalizowałem <b>20 miejscowości</b> w promieniu dojazdu, z cenami działek i domów z października 2026.
+      </p>
+      <div class="badge">✓ Punkt odniesienia: Otwock–Śródborów · 42 min do Śródmieścia · las wokół działki</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="n">20</div><div class="l">miejscowości w analizie</div></div>
+      <div class="kpi"><div class="n">≤ 1 h</div><div class="l">warunek dojazdu do centrum</div></div>
+      <div class="kpi"><div class="n">400 tys.</div><div class="l">budżet na 1000 m² działki</div></div>
+      <div class="kpi"><div class="n">3</div><div class="l">miejsca, które naprawdę pasują</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= MAPA ================= -->
+<section id="mapa">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Mapa satelitarna — gdzie naprawdę jest las</h2>
+        <p>Kliknij punkt, żeby zobaczyć liczby: dojazd, ceny, oceny. Rozmiar i kolor koła = ocena ogólna.
+           Podkład: Esri World Imagery (zdjęcia satelitarne).</p>
+      </div>
+    </div>
+
+    <div class="map-shell">
+      <div id="map"></div>
+      <aside class="map-side">
+        <div class="head">Ranking wg oceny ogólnej</div>
+        <div class="map-list" id="mapList"></div>
+      </aside>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#1f6b45"></i>8,0+ — najlepsze dopasowanie</span>
+      <span><i style="background:#4f9a5f"></i>7,0–7,9 — bardzo dobre</span>
+      <span><i style="background:#e0a13a"></i>6,0–6,9 — kompromis</span>
+      <span><i style="background:#c4553b"></i>&lt; 6,0 — daleko od profilu</span>
+      <span>⭘ wielkość koła = ocena ogólna</span>
+    </div>
+
+    <p class="note" style="margin-top:12px">
+      Ocena ogólna = 30% natura/izolacja + 25% dojazd + 25% infrastruktura + 20% relacja ceny do jakości.
+      To model decyzyjny, nie „prawda obiektywna" — w tabeli możesz zmienić filtr i zobaczyć, co wyjdzie przy innych priorytetach.
+    </p>
+  </div>
+</section>
+
+<!-- ================= RANKING ================= -->
+<section id="ranking">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Ranking — 20 miejscowości</h2>
+        <p>Kliknij nagłówek kolumny, żeby sortować. Filtry nad tabelą zawężają listę do Twoich warunków.</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="chip" data-filter="all" aria-pressed="true">Wszystkie</button>
+      <button class="chip" data-filter="budget" aria-pressed="false">💸 Działka 1000 m² ≤ 450 tys.</button>
+      <button class="chip" data-filter="commute" aria-pressed="false">🚆 Dojazd ≤ 35 min</button>
+      <button class="chip" data-filter="forest" aria-pressed="false">🌲 Las ≥ 9/10</button>
+      <button class="chip" data-filter="both" aria-pressed="false">🎯 Budżet + dojazd</button>
+    </div>
+
+    <div class="tablewrap">
+      <table id="rankTable">
+        <thead>
+          <tr>
+            <th data-sort="rank">#</th>
+            <th data-sort="name">Miejscowość</th>
+            <th data-sort="commute">Dojazd</th>
+            <th data-sort="comm">Komunikacja</th>
+            <th data-sort="land">Działka zł/m²</th>
+            <th data-sort="plot">1000 m²</th>
+            <th data-sort="house">Dom zł/m²</th>
+            <th data-sort="forest">Las</th>
+            <th data-sort="infra">Infra</th>
+            <th data-sort="value">Cena/jakość</th>
+            <th data-sort="overall">Ocena</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="note">Ceny działek: mediana/ofertowa wg Działkopedii (RCN + oferty, X 2026). Ceny domów: średnia ofertowa Otodom / Tabelaofert (X 2026). Wartości z „~" to szacunek na podstawie sąsiednich rynków.</p>
+  </div>
+</section>
+
+<!-- ================= KARTY ================= -->
+<section id="karty">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Sześć miejsc, które warto zobaczyć na żywo</h2>
+        <p>Kolejność wg oceny ogólnej, ale każda karta mówi też, dla kogo to zły wybór.</p>
+      </div>
+    </div>
+    <div class="cards" id="cardGrid"></div>
+  </div>
+</section>
+
+<!-- ================= CENY ================= -->
+<section id="ceny">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Ceny: ile kosztuje 1000 m² i dom 150 m²</h2>
+        <p>Twoje 400 tys. zł na działkę to realny budżet tylko w części lokalizacji. Czerwone słupki przekraczają limit.</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>Działka 1000 m² (tys. zł)</h3>
+        <div class="bars" id="landBars"></div>
+      </div>
+      <div>
+        <h3>Dom 150 m² (mln zł, średnia ofertowa)</h3>
+        <div class="bars" id="houseBars"></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:34px">Przedziały, nie średnie — co realnie zobaczysz w ogłoszeniach</h3>
+    <div class="tablewrap" style="margin-bottom:26px">
+      <table style="min-width:720px">
+        <thead>
+          <tr><th style="text-align:left">Miejscowość</th><th>Działka zł/m²</th><th>Dom wolnostojący (całość)</th><th>Dom zł/m²</th><th style="text-align:left">Uwaga</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Józefów</b></td><td>600–1 100</td><td>1,25–1,9 mln</td><td>6–12,7 tys.</td><td style="text-align:left">segmenty od ~1,1 mln</td></tr>
+          <tr><td><b>Otwock</b></td><td>~150–600</td><td>0,9–2,6 mln</td><td>6–14 tys.</td><td style="text-align:left">Śródborów i Świder drożej, obrzeża taniej</td></tr>
+          <tr><td><b>Podkowa Leśna</b></td><td>1 100–1 500</td><td>wille 1,5–4 mln</td><td>6,5–13,5 tys.</td><td style="text-align:left">ochrona konserwatorska</td></tr>
+          <tr><td><b>Komorów</b></td><td>900–1 300</td><td>1,3–2,5 mln</td><td>10–16 tys.</td><td style="text-align:left">rejestr zabytków, duże działki</td></tr>
+          <tr><td><b>Michałowice</b></td><td>800–1 200</td><td>1,4–2,6 mln</td><td>10–15 tys.</td><td style="text-align:left">ograniczona podaż</td></tr>
+          <tr><td><b>Milanówek</b></td><td>340–700</td><td>1,1–2,3 mln</td><td>7,5–15 tys.</td><td style="text-align:left">wille premium w centrum</td></tr>
+          <tr><td><b>Brwinów / Otrębusy / Kanie</b></td><td>385–830</td><td>1,2–2,2 mln</td><td>8–12 tys.</td><td style="text-align:left">Kanie i Otrębusy przy WKD</td></tr>
+          <tr><td><b>Raszyn</b></td><td>600–900</td><td>1,3–2,0 mln</td><td>8,5–9,6 tys.</td><td style="text-align:left">presja komercyjna, S2/S8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:-10px">
+      Źródła widełek: Elandom (raport linia otwocka, IX 2026), NZP (ceny nieruchomości pod Warszawą, I kw. 2026), Otodom (X 2026).
+      Dla pozostałych miejscowości w tabeli podaję średnią ofertową; realny rozrzut w tej samej gminie to zwykle ±25–30%,
+      a działka z mediami i asfaltem bywa dwa razy droższa od leśnej bez dojazdu.
+    </p>
+
+    <div class="callout" style="margin-top:26px">
+      <h3>Co to znaczy dla Twojego planu z poprzedniej analizy?</h3>
+      <p style="margin-bottom:0">
+        Przy budżecie <b>400 tys. na 1000 m²</b> zostają realnie: <b>Otwock (368 tys.)</b>, <b>Wiązowna (223 tys.)</b>,
+        <b>Wieliszew (266 tys.)</b>, <b>Jabłonna (341 tys.)</b>, <b>Milanówek (359 tys.)</b> i okolice <b>Brwinowa</b>. Józefów (840 tys.), Podkowa Leśna (815 tys.),
+        Izabelin (721 tys.) i Michałowice (761 tys.) są poza zasięgiem — chyba że działka będzie mniejsza (600–700 m²).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RODZINA ================= -->
+<section id="rodzina">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Perspektywa rodziny: dwóch synów do 5 lat</h2>
+        <p>Rzeczy, które przestają być „nice to have", gdy dzieci są małe.</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="callout">
+        <h3>🏥 Najważniejsza różnica wschód–zachód</h3>
+        <p>
+          <b>Centrum Zdrowia Dziecka w Międzylesiu</b> — największy szpital dziecięcy w Polsce — leży
+          kilka minut od linii otwockiej. Z Otwocka, Józefowa i Wesołej dojedziesz tam w <b>15–25 min</b>.
+          Z Konstancina, Izabelina czy Łomianek to <b>45–70 min</b> w korku.
+          Dla rodziny z dziećmi w wieku 0–5 to argument, który waży więcej niż cena metra.
+        </p>
+        <p style="margin-bottom:0" class="small">
+          Dodatkowo w Otwocku działa szpital kliniczny (ortopedia, CMKP) i szpital powiatowy — rzadkość w powiecie.
+        </p>
+      </div>
+
+      <div class="callout">
+        <h3>🏫 Przedszkola i szkoła — na co patrzeć</h3>
+        <ul style="margin:0; padding-left:18px">
+          <li><b>Rekrutacja gminna</b> — w Józefowie i Konstancinie bywają deficytowe — sprawdź terminy rekrutacji (marzec–kwiecień) i liczbę punktów za rodzeństwo.</li>
+          <li><b>Rejonizacja szkoły</b> — w Otwocku i Józefowie są szkoły z oddziałami sportowymi; w Zalesiu Górnym działa jedna szkoła podstawowa i przedszkole gminne.</li>
+          <li><b>Dowóz</b> — w gminach wiejskich (Wiązowna, Wieliszew, Zalesie) bywają gminne busy szkolne; w Otwocku i Józefowie dzieci jeżdżą komunikacją miejską. Sprawdź konkretną ulicę, nie tylko gminę.</li>
+          <li><b>Podwórko</b> — działka w lesie oznacza, że plac zabaw jest u Ciebie; ale sprawdź, czy jest chodnik do szkoły (w Śródborowie bywa z tym różnie).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:18px">
+      <h3>⚠️ Czego nikt nie powie na oglądaniu</h3>
+      <ul style="margin:0; padding-left:18px">
+        <li><b>Kleszcze i komary</b> — w Śródborowie, Zalesiu i na Kampinosie to codzienność od maja do września. Dla małych dzieci oznacza szczepienia i repelenty.</li>
+        <li><b>Zimowy dojazd</b> — drogi leśne bywają nieodśnieżone; sprawdź, kto odpowiada za odśnieżanie Twojej ulicy.</li>
+        <li><b>Brak gazu/kanalizacji</b> — na działkach leśnych często jest szambo i pompa ciepła; to +30–80 tys. na starcie.</li>
+        <li><b>„Cisza" bywa ceną za brak usług</b> — w Zalesiu Górnym i Wiązownej po 20:00 nie kupisz już nic poza sklepem na stacji.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WNIOSKI ================= -->
+<section id="wnioski">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Wnioski: trzy scenariusze</h2>
+        <p>Bo „najlepsze miejsce" nie istnieje — istnieje najlepsze miejsce dla Twojego budżetu i priorytetów.</p>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="top">
+          <div><h3>1. Otwock — Śródborów / Świder</h3><div class="where">punkt odniesienia, ale też najlepszy stosunek ceny do profilu</div></div>
+          <div class="big">8,7<small>/10</small></div>
+        </div>
+        <p style="margin-top:12px" class="small">Zostajesz w tym, co znasz: las dochodzi do płotu, pociąg 42 min, szpital i szkoły na miejscu. Działka 1000 m² ≈ 368 tys. — mieści się w budżecie z rezerwą.</p>
+        <div class="chiprow"><span class="mini good">🌲 10/10</span><span class="mini good">💸 368 zł/m²</span><span class="mini">🚆 42 min</span><span class="mini">🏠 9 330 zł/m²</span></div>
+        <div class="foot"><span class="mini">Ryzyko: hałas linii kolejowej w części Śródborowa</span></div>
+      </div>
+
+      <div class="card">
+        <div class="top">
+          <div><h3>2. Jabłonna</h3><div class="where">las + woda, najlepszy stosunek ceny do natury</div></div>
+          <div class="big">8,3<small>/10</small></div>
+        </div>
+        <p style="margin-top:12px" class="small">341 zł/m² za działkę, 30 min do Warszawy Gdańskiej, a obok Legionowo z pełną infrastrukturą: szpital, galeria, szkoły. Las i Zalew Zegrzyński w zasięgu roweru.</p>
+        <div class="chiprow"><span class="mini good">🌲 8,5/10</span><span class="mini good">💸 341 zł/m²</span><span class="mini good">🚆 30 min</span><span class="mini">🏠 8 467 zł/m²</span></div>
+        <div class="foot"><span class="mini">Ryzyko: część dróg gruntowych, dojazd drogowy w sezonie</span></div>
+      </div>
+
+      <div class="card">
+        <div class="top">
+          <div><h3>3. Sulejówek</h3><div class="where">najkrótszy dojazd przy zachowanym lesie</div></div>
+          <div class="big">8,1<small>/10</small></div>
+        </div>
+        <p style="margin-top:12px" class="small">30 min pociągiem do Śródmieścia, domy ~9 240 zł/m², działki ~400 zł/m². Mniej „dzikiego" lasu niż w Śródborowie, ale wyraźnie taniej niż Józefów i bliżej.</p>
+        <div class="chiprow"><span class="mini good">🌲 8/10</span><span class="mini good">💸 ~400 zł/m²</span><span class="mini good">🚆 30 min</span></div>
+        <div class="foot"><span class="mini">Wesoła ma najlepszy dojazd (25 min), ale działki ~900 zł/m²</span></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:26px">
+      <h3>Rekomendacja</h3>
+      <p>
+        Gdybym miał wybrać jedno miejsce: <b>Otwock, ale nie cały — konkretnie obręb Śródborów, Świder albo Anielin</b>.
+        Masz tam dokładnie ten profil, którego szukasz, a cena gruntu (368 zł/m²) pozwala kupić 1000 m² za ~368 tys.
+        i zostawić sobie bufor na budowę. Drugi wybór: <b>Jabłonna</b> — jeśli dojazd ma być krótszy, a cena podobna.
+      </p>
+      <p style="margin-bottom:0" class="small">
+        Józefów jest „lepszy" pod każdym względem poza jednym — ceną. Przy 840 zł/m² za działkę i medianie domu 2,02 mln zł
+        to już inna liga budżetowa niż zakładałeś.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ZRODLA ================= -->
+<section id="zrodla">
+  <div class="wrap">
+    <h2>Źródła i metodologia</h2>
+    <p class="small" style="max-width:760px">
+      Ceny działek: Działkopedia (Rejestr Cen Nieruchomości GUGiK + aktywne oferty), stan X 2026 — dla gmin, gdzie próba była wystarczająca.
+      Ceny domów: Otodom (średnia ofertowa, X 2026) i Tabelaofert.pl; dla części gmin szacunek na podstawie rynków sąsiednich (oznaczony „~").
+      Czasy dojazdu: rozkłady KM/SKM/WKD/ZTM oraz rozkład-wkd.pl (WKD: Michałowice 18 min, Podkowa Leśna 40 min, Milanówek 47 min),
+      komunikaty UM Warszawa (Piaseczno–Centrum 35 min SKM), opracowania rynkowe. Czasy podane „drzwi–drzwi" do Śródmieścia, w godzinach szczytu, zaokrąglone.
+      Oceny 1–10 są autorskie i wynikają z wag podanych przy mapie.
+    </p>
+
+    <div class="srcline">
+      <div>
+        <a href="https://dzialkopedia.pl/ceny-dzialek">Działkopedia — ceny działek w gminach (X 2026)</a>
+        <a href="https://www.otodom.pl">Otodom — średnie ceny domów (X 2026)</a>
+        <a href="https://tabelaofert.pl">Tabelaofert — średnie ceny domów</a>
+      </div>
+      <div>
+        <a href="https://www.rozklad-wkd.pl/">Rozkład WKD — czasy przejazdu</a>
+        <a href="https://um.warszawa.pl/-/dwie-nowe-linie-skm-z-piaseczna-do-warszawy">UM Warszawa — SKM z Piaseczna (35 min)</a>
+        <a href="https://skm.warszawa.pl/rozklad-jazdy/">SKM Warszawa — rozkłady</a>
+      </div>
+      <div>
+        <a href="https://rynekpierwotny.pl/wiadomosci-mieszkaniowe/gdzie-zamieszkac-pod-warszawa/7237/">RynekPierwotny — gdzie zamieszkać pod Warszawą 2026</a>
+        <a href="https://nieruchomoscizpolecenia.pl/ceny-nieruchomosci-pod-warszawa-2026/">Ceny domów i działek pod Warszawą 2026</a>
+        <a href="https://elandom.pl/2026/09/raport-rynek-nieruchomosci-linia-otwocka-2026/">Raport: linia otwocka 2026</a>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:22px">
+      Analiza ma charakter poglądowy. Przed zakupem działki sprawdź MPZP/plan ogólny, media, geologię i księgę wieczystą.
+      Ceny ofertowe są zwykle 5–15% wyższe od transakcyjnych — to pole do negocjacji.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Opracowanie: 24 października 2026 · dane cenowe: X 2026 · <span id="footCount"></span> miejscowości · mapa: Esri World Imagery
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ============================================================
+   DANE — jedno źródło prawdy
+   land: zł/m² (działka), house: zł/m² (dom, oferta), houseAvg: średnia cena domu
+   scores 1–10: forest (natura), comm (dojazd), infra (usługi), value (cena/jakość)
+   ============================================================ */
+const TOWNS = [
+  {
+    id:'otwock', name:'Otwock — Śródborów', short:'Otwock–Śródborów',
+    lat:52.078, lng:21.283, line:'KM / SKM S1', commute:42,
+    land:368, landKind:'ofertowa', house:9330, houseAvg:1520000,
+    forest:10, comm:6.5, infra:8.5, value:9.5,
+    pros:['las dochodzi do działek','szpital kliniczny i powiatowy','własna linia kolejowa, 42 min','działka 1000 m² ≈ 368 tys.'],
+    cons:['hałas kolei w części obrębów','część dróg bez chodnika','zima: odśnieżanie dróg leśnych'],
+    tags:['Świdermajer','uzdrowisko','MPK']
+  },
+  {
+    id:'jozefow', name:'Józefów', short:'Józefów',
+    lat:52.137, lng:21.235, line:'KM / SKM S1', commute:35,
+    land:840, landKind:'ofertowa', house:11344, houseAvg:2018330,
+    forest:10, comm:7.5, infra:9, value:5,
+    pros:['najbardziej „śródborowski" charakter','35 min pociągiem','dużo przedszkoli i szkół','blisko CZD Międzylesie'],
+    cons:['działka 1000 m² to ~840 tys.','mediana domu 2,0 mln','mała podaż dużych działek'],
+    tags:['prestiż','las','linia otwocka']
+  },
+  {
+    id:'sulejowek', name:'Sulejówek', short:'Sulejówek',
+    lat:52.250, lng:21.267, line:'KM / SKM S1', commute:30,
+    land:400, landKind:'szacunek', house:9238, houseAvg:1500000,
+    forest:8, comm:8.5, infra:8, value:8,
+    pros:['30 min do Śródmieścia','ceny wyraźnie niższe niż Józefów','szkoły, przedszkola, basen','las Miłosna i okolice'],
+    cons:['mniej „dzikiego" lasu niż Śródborów','część osiedli przy trasie','hałas linii w centrum'],
+    tags:['dobry stosunek ceny','kolej','rodzina']
+  },
+  {
+    id:'wesola', name:'Warszawa — Wesoła', short:'Wesoła (Warszawa)',
+    lat:52.250, lng:21.217, line:'SKM S1', commute:25,
+    land:900, landKind:'szacunek', house:11000, houseAvg:1800000,
+    forest:9, comm:9.5, infra:10, value:4.5,
+    pros:['25 min do centrum','wszystkie miejskie usługi','las Stara Miłosna','blisko CZD'],
+    cons:['ceny warszawskie','działki rzadkie i drogie','podatek od nieruchomości jak w Warszawie'],
+    tags:['Warszawa','las','komunikacja']
+  },
+  {
+    id:'zielonka', name:'Zielonka', short:'Zielonka',
+    lat:52.300, lng:21.183, line:'KM / SKM', commute:27,
+    land:708, landKind:'rynkowa', house:8517, houseAvg:1534813,
+    forest:8, comm:9, infra:7, value:5,
+    pros:['27 min pociągiem','rezerwat Horowe Bagno','domy tańsze niż w Józefowie','blisko Warszawy'],
+    cons:['działki drogie (708 zł/m²)','mało dużych działek','usługi głównie w Wołominie'],
+    tags:['las','kolej','rezerwat']
+  },
+  {
+    id:'zalesie', name:'Zalesie Górne', short:'Zalesie Górne',
+    lat:52.033, lng:21.033, line:'KM (linia radomska)', commute:45,
+    land:450, landKind:'szacunek', house:10500, houseAvg:1300000,
+    forest:9.5, comm:6, infra:6.5, value:7.5,
+    pros:['domy w lesie, jak w Śródborowie','własne przedszkole, szkoła, ośrodek zdrowia','silna wspólnota lokalna','tańsze niż Józefów'],
+    cons:['45 min do centrum','mało sklepów i usług','komary i kleszcze'],
+    tags:['las','kameralnie','kolej']
+  },
+  {
+    id:'piaseczno', name:'Piaseczno', short:'Piaseczno',
+    lat:52.081, lng:20.993, line:'SKM S4 / S40', commute:35,
+    land:349, landKind:'rynkowa', house:10058, houseAvg:2363540,
+    forest:5.5, comm:8.5, infra:10, value:6,
+    pros:['35 min SKM','najlepsza infrastruktura w okolicy','Galeria Piaseczno, szpitale, szkoły','działki 349 zł/m²'],
+    cons:['to miasto, nie las','duży ruch','daleko od CZD'],
+    tags:['miasto','SKM','usługi']
+  },
+  {
+    id:'konstancin', name:'Konstancin-Jeziorna', short:'Konstancin',
+    lat:52.094, lng:21.118, line:'bus + metro', commute:55,
+    land:468, landKind:'rynkowa', house:14527, houseAvg:4677393,
+    forest:9, comm:5, infra:9.5, value:3.5,
+    pros:['uzdrowisko, sosny, tężnia','American School of Warsaw','prywatne kliniki i szkoły','prestiż'],
+    cons:['brak kolei — 55 min autobusem i metrem','domy średnio 4,7 mln (oferty premium)','korki na Puławskiej'],
+    tags:['uzdrowisko','premium','szkoły']
+  },
+  {
+    id:'podkowa', name:'Podkowa Leśna', short:'Podkowa Leśna',
+    lat:52.117, lng:20.733, line:'WKD', commute:40,
+    land:815, landKind:'rynkowa', house:10000, houseAvg:1700000,
+    forest:10, comm:6.5, infra:6, value:3,
+    pros:['miasto-ogród, wille w lesie','WKD 40 min do Śródmieścia','unikalny charakter','spokój'],
+    cons:['działka 1000 m² to 0,8–1,5 mln','ochrona konserwatorska utrudnia budowę','mało usług'],
+    tags:['miasto-ogród','zabytek','WKD']
+  },
+  {
+    id:'milanowek', name:'Milanówek', short:'Milanówek',
+    lat:52.117, lng:20.667, line:'WKD', commute:47,
+    land:359, landKind:'rynkowa', house:10393, houseAvg:2224047,
+    forest:9, comm:5.5, infra:7.5, value:6.5,
+    pros:['wille wśród drzew','działki 359 zł/m²','WKD do centrum','szkoły i kultura'],
+    cons:['47 min WKD','część domów do remontu','mało nowych osiedli'],
+    tags:['miasto-ogród','WKD','wille']
+  },
+  {
+    id:'komorow', name:'Komorów', short:'Komorów',
+    lat:52.150, lng:20.733, line:'WKD', commute:28,
+    land:761, landKind:'rynkowa', house:12000, houseAvg:1800000,
+    forest:7, comm:9, infra:8.5, value:3.5,
+    pros:['28 min WKD','blisko Warszawy','dużo zieleni i starych willi','dobre szkoły'],
+    cons:['działki 761 zł/m²','duży ruch tranzytowy','las tylko fragmentami'],
+    tags:['WKD','blisko','miasto-ogród']
+  },
+  {
+    id:'michalowice', name:'Michałowice', short:'Michałowice',
+    lat:52.167, lng:20.883, line:'WKD', commute:22,
+    land:761, landKind:'rynkowa', house:12000, houseAvg:1900000,
+    forest:7, comm:9, infra:8.5, value:3.5,
+    pros:['22 min WKD — najlepszy dojazd w zestawieniu','blisko Warszawy','spokojne ulice','szkoły'],
+    cons:['ceny działek jak w Warszawie','prawie brak lasu','hałas trasy'],
+    tags:['WKD','blisko','drogo']
+  },
+  {
+    id:'lomianki', name:'Łomianki', short:'Łomianki',
+    lat:52.333, lng:20.883, line:'bus + metro', commute:40,
+    land:506, landKind:'rynkowa', house:10073, houseAvg:1613477,
+    forest:8, comm:6.5, infra:9.5, value:5.5,
+    pros:['Kampinoski PN za płotem','Galeria Łomianki, szpitale, szkoły','dużo nowych osiedli','40 min z przesiadką'],
+    cons:['korki na Pułkowej i Wiślanej','brak kolei','duży ruch'],
+    tags:['Kampinos','usługi','korki']
+  },
+  {
+    id:'izabelin', name:'Izabelin', short:'Izabelin',
+    lat:52.283, lng:20.817, line:'bus + metro', commute:50,
+    land:721, landKind:'rynkowa', house:12000, houseAvg:1800000,
+    forest:10, comm:5, infra:5.5, value:4,
+    pros:['Kampinoski Park Narodowy','najczystsze powietrze w okolicy','duże działki leśne','spokój'],
+    cons:['brak kolei — 50 min autobusem','działki 721 zł/m²','mało usług i szkół'],
+    tags:['Kampinos','las','cisza']
+  },
+  {
+    id:'jablonna', name:'Jabłonna', short:'Jabłonna',
+    lat:52.383, lng:20.917, line:'SKM S3 / KM', commute:30,
+    land:341, landKind:'rynkowa', house:8467, houseAvg:1421714,
+    forest:8.5, comm:8, infra:8, value:8.5,
+    pros:['30 min do Gdańskiego','las i Zalew Zegrzyński','Legionowo z pełną infrastrukturą obok','działki 341 zł/m²'],
+    cons:['część dróg gruntowych','zima: ślisko','mniej „prestiżu" niż Józefów'],
+    tags:['las','woda','cena']
+  },
+  {
+    id:'wieliszew', name:'Wieliszew', short:'Wieliszew',
+    lat:52.450, lng:20.950, line:'SKM S4 / KM', commute:40,
+    land:266, landKind:'rynkowa', house:7939, houseAvg:1404111,
+    forest:9, comm:6.5, infra:5.5, value:9,
+    pros:['najtańsze domy w zestawieniu','las i jezioro','40 min SKM','duże działki'],
+    cons:['słabe usługi — trzeba do Legionowa','szkoły podstawowe, brak średnich','dojazd drogowy wąski'],
+    tags:['jezioro','las','tanio']
+  },
+  {
+    id:'marki', name:'Marki', short:'Marki',
+    lat:52.320, lng:21.100, line:'KM / tramwaj', commute:33,
+    land:726, landKind:'rynkowa', house:8984, houseAvg:1321956,
+    forest:5, comm:8, infra:8.5, value:4.5,
+    pros:['33 min do Wileńskiej i centrum','M1 Marki i duże sklepy obok','S8','domy stosunkowo tanie'],
+    cons:['przemysł i magazyny','mało lasu','hałas i ruch ciężarowy'],
+    tags:['przemysł','handel','blisko']
+  },
+  {
+    id:'wiazowna', name:'Wiązowna', short:'Wiązowna',
+    lat:52.150, lng:21.300, line:'bus / auto', commute:50,
+    land:223, landKind:'rynkowa', house:9000, houseAvg:1200000,
+    forest:9, comm:5.5, infra:4, value:10,
+    pros:['najtańsza działka w okolicy (223 zł/m²)','las i MPK','duże działki','blisko Otwocka i S17'],
+    cons:['brak kolei — 50 min','bardzo słabe usługi','rozproszona zabudowa'],
+    tags:['tanio','las','wiejsko']
+  },
+  {
+    id:'brwinow', name:'Brwinów', short:'Brwinów',
+    lat:52.142, lng:20.717, line:'KM', commute:40,
+    land:414, landKind:'rynkowa', house:9350, houseAvg:1608901,
+    forest:7.5, comm:6, infra:7, value:7,
+    pros:['40 min KM','działki 414 zł/m²','domy ~9 350 zł/m²','blisko A2 i S8'],
+    cons:['las tylko fragmentami','WKD nie dojeżdża do centrum Brwinowa','ruch tranzytowy'],
+    tags:['kolej','cena','rodzina']
+  },
+  {
+    id:'starebabice', name:'Stare Babice', short:'Stare Babice',
+    lat:52.267, lng:20.800, line:'bus + metro', commute:45,
+    land:548, landKind:'rynkowa', house:9750, houseAvg:1463789,
+    forest:8, comm:5.5, infra:7, value:6,
+    pros:['blisko Kampinosu','szkoły i przedszkola','spokojne osiedla','45 min do centrum'],
+    cons:['brak kolei','działki 548 zł/m²','korki na Połczyńskiej'],
+    tags:['Kampinos','rodzina','bus']
+  }
+];
+
+/* ============================================================
+   OBLICZENIA
+   ============================================================ */
+const W = { forest:.30, comm:.25, infra:.25, value:.20 };
+TOWNS.forEach(t=>{
+  t.overall = +(t.forest*W.forest + t.comm*W.comm + t.infra*W.infra + t.value*W.value).toFixed(2);
+  t.plot = t.land*1000;
+  t.house150 = t.house*150;
+});
+const sorted = [...TOWNS].sort((a,b)=>b.overall-a.overall);
+sorted.forEach((t,i)=>t.rank=i+1);
+
+const color = s => s>=8 ? '#1f6b45' : s>=7 ? '#4f9a5f' : s>=6 ? '#e0a13a' : '#c4553b';
+const fmt = n => n.toLocaleString('pl-PL');
+const fmtM = n => (n/1e6).toFixed(2).replace('.',',') + ' mln';
+
+/* ============================================================
+   MAPA
+   ============================================================ */
+const map = L.map('map', { scrollWheelZoom:true, zoomControl:true }).setView([52.20,20.98], 10);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 18, attribution: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics'
+}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 18, opacity: .55
+}).addTo(map);
+
+const markers = {};
+sorted.forEach(t=>{
+  const r = 2200 + (t.overall-6)*900;
+  const circle = L.circle([t.lat,t.lng], {
+    radius: r, color: color(t.overall), weight: 1.5, opacity:.85,
+    fillColor: color(t.overall), fillOpacity:.14
+  }).addTo(map);
+  const icon = L.divIcon({
+    className:'',
+    html:`<div style="width:30px;height:30px;border-radius:50%;background:${color(t.overall)};
+      color:#fff;display:grid;place-items:center;font:700 12px/1 -apple-system,sans-serif;
+      border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45)">${t.rank}</div>`,
+    iconSize:[30,30], iconAnchor:[15,15]
+  });
+  const m = L.marker([t.lat,t.lng], {icon}).addTo(map);
+  m.bindPopup(`
+    <div class="pop">
+      <h4>${t.name}</h4>
+      <div class="sub">${t.line} · ${t.commute} min do Śródmieścia</div>
+      <div class="row"><span>Działka 1000 m²</span><b>${fmt(t.plot)} zł</b></div>
+      <div class="row"><span>Działka za m²</span><b>${fmt(t.land)} zł</b></div>
+      <div class="row"><span>Dom 150 m² (oferty)</span><b>${fmtM(t.house150)}</b></div>
+      <div class="row"><span>Średnia cena domu</span><b>${fmtM(t.houseAvg)}</b></div>
+      <div class="row"><span>Las / natura</span><b>${t.forest}/10</b></div>
+      <div class="row"><span>Infrastruktura</span><b>${t.infra}/10</b></div>
+      <div class="row"><span>Ocena ogólna</span><b style="color:${color(t.overall)}">${t.overall.toFixed(2).replace('.',',')}</b></div>
+      ${t.tags.map(x=>`<span class="tag">${x}</span>`).join('')}
+    </div>`, {maxWidth: 290});
+  m.on('click', ()=>{ circle.setStyle({fillOpacity:.28}); });
+  m.on('popupclose', ()=>{ circle.setStyle({fillOpacity:.14}); });
+  markers[t.id] = {m, circle};
+});
+
+/* lista obok mapy */
+document.getElementById('mapList').innerHTML = sorted.map(t=>`
+  <div class="map-item" data-id="${t.id}">
+    <div class="rk" style="background:${color(t.overall)}">${t.rank}</div>
+    <div><div class="nm">${t.name}</div><div class="sub">${t.commute} min · ${fmt(t.land)} zł/m²</div></div>
+    <div class="sc" style="color:${color(t.overall)}">${t.overall.toFixed(1).replace('.',',')}</div>
+  </div>`).join('');
+document.querySelectorAll('.map-item').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const t = TOWNS.find(x=>x.id===el.dataset.id);
+    map.flyTo([t.lat,t.lng], 12, {duration:.7});
+    setTimeout(()=>markers[t.id].m.openPopup(), 750);
+    if(window.innerWidth<950) document.getElementById('map').scrollIntoView({behavior:'smooth'});
+  });
+});
+
+/* ============================================================
+   TABELA
+   ============================================================ */
+const tbody = document.querySelector('#rankTable tbody');
+let currentFilter = 'all';
+let sortKey = 'overall', sortDir = -1;
+
+function passFilter(t){
+  if(currentFilter==='all') return true;
+  if(currentFilter==='budget') return t.plot <= 450000;
+  if(currentFilter==='commute') return t.commute <= 35;
+  if(currentFilter==='forest') return t.forest >= 9;
+  if(currentFilter==='both') return t.plot <= 450000 && t.commute <= 35;
+  return true;
+}
+
+function renderTable(){
+  const rows = sorted.filter(passFilter).sort((a,b)=>{
+    const k = sortKey==='rank' ? 'rank' : sortKey;
+    let av=a[k], bv=b[k];
+    if(typeof av==='string') return sortDir * av.localeCompare(bv,'pl');
+    return sortDir===1 ? av-bv : bv-av;
+  });
+  tbody.innerHTML = rows.map(t=>`
+    <tr class="${t.rank===1?'top1':''}">
+      <td><span class="rank">${t.rank}</span></td>
+      <td><b>${t.name}</b><br><span class="tiny muted">${t.line}</span></td>
+      <td>${t.commute} min</td>
+      <td><span class="bar" style="width:${Math.max(4,t.comm*7)}px"></span>${t.comm}</td>
+      <td>${fmt(t.land)}</td>
+      <td style="color:${t.plot>450000?'#c4553b':'inherit'};font-weight:600">${fmt(t.plot)}</td>
+      <td>${fmt(t.house)}</td>
+      <td><span class="bar" style="width:${Math.max(4,t.forest*7)}px"></span>${t.forest}</td>
+      <td><span class="bar" style="width:${Math.max(4,t.infra*7)}px;background:#2b6c8f"></span>${t.infra}</td>
+      <td><span class="bar" style="width:${Math.max(4,t.value*7)}px;background:#e0a13a"></span>${t.value}</td>
+      <td><span class="score" style="color:${color(t.overall)}">${t.overall.toFixed(2).replace('.',',')}</span></td>
+    </tr>`).join('');
+  if(rows.length===0) tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px" class="muted">Brak miejsc spełniających ten filtr — poluzuj kryterium.</td></tr>`;
+}
+
+document.querySelectorAll('button.chip').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('button.chip').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    currentFilter = b.dataset.filter;
+    renderTable();
+  });
+});
+
+document.querySelectorAll('#rankTable thead th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const k = th.dataset.sort;
+    if(sortKey===k) sortDir *= -1; else { sortKey=k; sortDir = (k==='name'||k==='rank') ? 1 : -1; }
+    renderTable();
+  });
+});
+renderTable();
+
+/* ============================================================
+   KARTY
+   ============================================================ */
+const cardIds = ['otwock','sulejowek','jablonna','jozefow','zalesie','wieliszew'];
+document.getElementById('cardGrid').innerHTML = cardIds.map(id=>{
+  const t = TOWNS.find(x=>x.id===id);
+  return `<article class="card">
+    <div class="top">
+      <div><h3>${t.name}</h3><div class="where">${t.line} · ${t.commute} min do Śródmieścia</div></div>
+      <div class="big">${t.overall.toFixed(1).replace('.',',')}<small>/10</small></div>
+    </div>
+    <div class="chiprow">
+      <span class="mini ${t.forest>=9?'good':''}">🌲 ${t.forest}/10</span>
+      <span class="mini ${t.infra>=9?'good':''}">🏫 ${t.infra}/10</span>
+      <span class="mini ${t.plot<=450000?'good':'warn'}">💸 ${fmt(t.land)} zł/m²</span>
+      <span class="mini">🏠 ${fmt(t.house)} zł/m²</span>
+    </div>
+    <p class="small" style="margin:12px 0 0"><b>Działka 1000 m²:</b> ${fmt(t.plot)} zł · <b>Dom 150 m²:</b> ${fmtM(t.house150)}</p>
+    <ul>${t.pros.slice(0,3).map(p=>`<li>${p}</li>`).join('')}</ul>
+    <div class="foot">
+      ${t.cons.slice(0,1).map(c=>`<span class="mini warn">⚠ ${c}</span>`).join('')}
+    </div>
+  </article>`;
+}).join('');
+
+/* ============================================================
+   SŁUPKI CEN
+   ============================================================ */
+function bars(el, key, max, fmtFn, overFn){
+  const list = [...TOWNS].sort((a,b)=>a[key]-b[key]);
+  el.innerHTML = list.map(t=>{
+    const v = t[key];
+    const pct = Math.min(100, v/max*100);
+    return `<div class="brow">
+      <div>${t.short}</div>
+      <div class="btrack"><div class="bfill ${overFn&&overFn(t)?'over':''}" style="width:${pct}%"></div></div>
+      <div class="bval">${fmtFn(v)}</div>
+    </div>`;
+  }).join('');
+}
+bars(document.getElementById('landBars'), 'plot', 900000, v=>(v/1000).toFixed(0)+' tys.', t=>t.plot>450000);
+bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFixed(2).replace('.',','), null);
+
+document.getElementById('footCount').textContent = TOWNS.length;
+</script>
+</body>
+</html>
