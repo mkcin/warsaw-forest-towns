@@ -1,8 +1,8 @@
-# Podwarszawskie „Otwocki" — przegląd miejscowości (2026)
+# Atrakcyjne i spokojne miejsca pod Warszawą (2026)
 
 Statyczna strona z analizą 20 miejscowości pod Warszawą pod kątem:
 
-- **natury i izolacji** (domy w lesie, jak w Otwocku‑Śródborowie),
+- **spokoju i zieleni** wokół działki,
 - **dojazdu do Śródmieścia** komunikacją publiczną (KM / SKM / WKD / autobus),
 - **infrastruktury** (szkoły, przedszkola, szpital, sklepy),
 - **cen działek i domów** (stan: październik 2026).
