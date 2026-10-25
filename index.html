@@ -171,6 +171,12 @@ tr.top1 .rank{background:var(--green); color:#fff}
 .crit-table td:first-child{font-weight:650}
 .crit-table td, .crit-table th{padding:9px 12px}
 
+
+.offer-verdict{position:absolute;bottom:10px;left:10px;font-size:11px;font-weight:700;border-radius:999px;padding:4px 10px;letter-spacing:.02em}
+.offer-note{font-size:12.5px;line-height:1.45;color:var(--ink-soft);background:#f4f6f0;border-left:3px solid var(--green-2);border-radius:0 8px 8px 0;padding:8px 10px}
+.offer-flags{display:flex;flex-wrap:wrap;gap:5px}
+.offer-flags span{font-size:11px;background:#fbf1ec;color:#96412c;border-radius:6px;padding:3px 7px}
+
 /* ---------- misc ---------- */
 .grid2{display:grid; grid-template-columns:1fr 1fr; gap:28px}
 @media(max-width:860px){.grid2{grid-template-columns:1fr}}
@@ -975,7 +981,7 @@ bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFix
 document.getElementById('footCount').textContent = TOWNS.length;
 </script>
 
-<script src="offers.js"></script>
+<script src="offers.js?v=1792918949"></script>
 <script>
 (function () {
   var data = window.OFFERS_DATA;
@@ -999,6 +1005,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
     '<span>🕒 <b>' + dateStr + '</b></span>' +
     '<span>📦 ' + fmt(meta.counts.scraped) + ' pobranych → ' + fmt(meta.counts.after_filters) + ' po filtrach</span>' +
     '<span>✅ <b>' + fmt(meta.counts.published) + '</b> na liście</span>' +
+    (meta.counts.reviewed ? '<span>👀 przejrzane: <b>' + fmt(meta.counts.reviewed) + '</b></span>' : '') +
     '<span>🌐 ' + sourceNames + '</span>';
 
   var setText = function (id, value) { var el = document.getElementById(id); if (el) el.textContent = value; };
@@ -1037,18 +1044,24 @@ document.getElementById('footCount').textContent = TOWNS.length;
         ? '<img loading="lazy" src="' + o.image + '" alt="">'
         : '<div class="ph">brak zdjęcia</div>';
       var tags = (o.tags || []).map(function (t) { return '<span class="mini">' + t + '</span>'; }).join('');
-      var warn = (o.warnings || []).slice(0, 2).map(function (w) { return '<div class="offer-warn">⚠ ' + w + '</div>'; }).join('');
-      var plot = o.plot_m2 ? fmt(o.plot_m2) + ' m²' : '—';
+      var warn = (o.warnings || []).slice(0, 1).map(function (w) { return '<div class="offer-warn">⚠ ' + w + '</div>'; }).join('');
+      var plot = o.plot_m2 ? fmt(o.plot_m2) + ' m²' : 'b.d.';
+      var verdictLabel = o.verdict === 'worth' ? '✓ warto jechać' : o.verdict === 'watch' ? '◐ do sprawdzenia' : '· ranking';
+      var verdictColor = o.verdict === 'worth' ? '#1f6b45' : o.verdict === 'watch' ? '#b9871f' : '#5c6b62';
+      var note = o.note ? '<div class="offer-note">' + o.note + '</div>' : '';
+      var flags = (o.flags && o.flags.length) ? '<div class="offer-flags">' + o.flags.map(function (f) { return '<span>⚠ ' + f + '</span>'; }).join('') + '</div>' : '';
       return '<article class="offer">' +
         '<div class="offer-media">' + media +
           '<div class="offer-score" style="background:' + scoreColor(o.score) + '">' + o.score.toFixed(1).replace('.', ',') + '</div>' +
           '<div class="offer-src">' + o.source + '</div>' +
+          '<div class="offer-verdict" style="background:' + verdictColor + '">' + verdictLabel + '</div>' +
         '</div>' +
         '<div class="offer-body">' +
           '<div class="offer-loc">📍 ' + (o.location_name || o.city) + ' · ' + (o.location_commute || '?') + ' min</div>' +
           '<h3>' + o.title + '</h3>' +
           '<div class="offer-price">' + fmt(o.price) + ' zł</div>' +
           '<div class="offer-metrics"><span>' + o.area_m2 + ' m²</span><span>' + fmt(o.price_m2) + ' zł/m²</span><span>działka ' + plot + '</span></div>' +
+          note + flags +
           '<div class="chiprow">' + tags + '</div>' + warn +
           '<a class="offer-link" href="' + o.url + '" target="_blank" rel="noopener">Zobacz ofertę ↗</a>' +
         '</div></article>';
