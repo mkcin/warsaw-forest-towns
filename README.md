@@ -13,6 +13,15 @@ Statyczna strona z analizą 20 miejscowości pod Warszawą pod kątem:
 Strona zawiera interaktywną mapę satelitarną, sortowalny ranking z filtrami, karty miejsc,
 wykresy cen oraz sekcję dla rodzin z małymi dziećmi.
 
+## Oferty domów
+
+Sekcja **Oferty** jest generowana automatycznie: `offers.js` zawiera pobrane oferty
+z Otodomu, Morizonu i Gratki, ocenione według jawnych kryteriów (cena ≤ 1,40 mln zł,
+powierzchnia ≥ 90 m², lokalizacja w analizowanych miejscowościach). Plik zawiera
+`meta.version` i `meta.generated_at`, które strona pokazuje w nagłówku sekcji.
+
+Ponowne uruchomienie odświeża `offers.js`; `index.html` nie wymaga zmian.
+
 ## Uruchomienie
 
 Wersja online: https://mkcin.github.io/warsaw-forest-towns/
