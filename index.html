@@ -252,7 +252,8 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
       <button class="chip" data-filter="private" aria-pressed="false">🤝 bez pośrednika</button>
       <span style="flex:1"></span>
       <select id="offerSort" class="chip" style="cursor:pointer">
-        <option value="score">Sortuj: ocena</option>
+        <option value="curated">Sortuj: rekomendacja</option>
+        <option value="score">Ocena (punktacja)</option>
         <option value="price">Cena rosnąco</option>
         <option value="area">Powierzchnia malejąco</option>
         <option value="ppm2">Cena/m² rosnąco</option>
@@ -981,7 +982,7 @@ bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFix
 document.getElementById('footCount').textContent = TOWNS.length;
 </script>
 
-<script src="offers.js?v=1792918949"></script>
+<script src="offers.js?v=1792919042"></script>
 <script>
 (function () {
   var data = window.OFFERS_DATA;
@@ -1018,7 +1019,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
   setText('critLimit', fmt(meta.thresholds.max_publish || offers.length));
   setText('footOffers', 'oferty: v' + meta.version + ' z ' + dateStr);
 
-  var state = { filter: 'all', sort: 'score', visible: 9 };
+  var state = { filter: 'all', sort: 'curated', visible: 9 };
 
   function pass(o) {
     if (state.filter === 'budget') return o.price <= meta.thresholds.comfort_max_price;
@@ -1028,6 +1029,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
     return true;
   }
   function sortFn(a, b) {
+    if (state.sort === 'curated') return 0;
     if (state.sort === 'price') return a.price - b.price;
     if (state.sort === 'area') return b.area_m2 - a.area_m2;
     if (state.sort === 'ppm2') return (a.price_m2 || 9e9) - (b.price_m2 || 9e9);
@@ -1044,7 +1046,9 @@ document.getElementById('footCount').textContent = TOWNS.length;
         ? '<img loading="lazy" src="' + o.image + '" alt="">'
         : '<div class="ph">brak zdjęcia</div>';
       var tags = (o.tags || []).map(function (t) { return '<span class="mini">' + t + '</span>'; }).join('');
-      var warn = (o.warnings || []).slice(0, 1).map(function (w) { return '<div class="offer-warn">⚠ ' + w + '</div>'; }).join('');
+      var flagText = (o.flags || []).join(' ').toLowerCase();
+      var warn = (o.warnings || []).filter(function (w) { return flagText.indexOf(w.toLowerCase()) === -1; })
+        .slice(0, 1).map(function (w) { return '<div class="offer-warn">⚠ ' + w + '</div>'; }).join('');
       var plot = o.plot_m2 ? fmt(o.plot_m2) + ' m²' : 'b.d.';
       var verdictLabel = o.verdict === 'worth' ? '✓ warto jechać' : o.verdict === 'watch' ? '◐ do sprawdzenia' : '· ranking';
       var verdictColor = o.verdict === 'worth' ? '#1f6b45' : o.verdict === 'watch' ? '#b9871f' : '#5c6b62';
