@@ -146,6 +146,31 @@ tr.top1 .rank{background:var(--green); color:#fff}
 .bfill.over{background:linear-gradient(90deg,#e0a13a,#c4553b)}
 .bval{text-align:right; font-variant-numeric:tabular-nums; font-weight:650}
 
+
+/* ---------- offers ---------- */
+.run-meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin:0 0 18px}
+.run-meta span{font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--ink-soft)}
+.run-meta b{color:var(--ink)}
+.offer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:16px}
+.offer{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.offer-media{position:relative;aspect-ratio:16/10;background:#e7eae2;overflow:hidden}
+.offer-media img{width:100%;height:100%;object-fit:cover;display:block}
+.offer-media .ph{width:100%;height:100%;display:grid;place-items:center;color:#9aa79c;font-size:12px}
+.offer-score{position:absolute;top:10px;left:10px;background:#1f6b45;color:#fff;font-weight:750;font-size:13px;border-radius:10px;padding:5px 9px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.offer-src{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.92);color:#2c3d33;font-size:11px;font-weight:650;border-radius:999px;padding:3px 9px;text-transform:uppercase;letter-spacing:.04em}
+.offer-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:7px;flex:1}
+.offer-loc{font-size:12px;color:var(--muted)}
+.offer h3{font-size:15px;line-height:1.3;margin:0;min-height:39px}
+.offer-price{font-size:23px;font-weight:750;letter-spacing:-.02em;line-height:1.1}
+.offer-metrics{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft)}
+.offer-metrics span{background:#f2f4ee;border-radius:7px;padding:3px 8px}
+.offer-warn{font-size:11.5px;color:#96412c;background:#fbeee9;border-radius:8px;padding:6px 9px}
+.offer-link{margin-top:auto;padding-top:6px;font-size:13px;font-weight:650;text-decoration:none;color:var(--green)}
+.offer-link:hover{text-decoration:underline}
+.offers-empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--r);padding:26px;text-align:center;color:var(--muted)}
+.crit-table td:first-child{font-weight:650}
+.crit-table td, .crit-table th{padding:9px 12px}
+
 /* ---------- misc ---------- */
 .grid2{display:grid; grid-template-columns:1fr 1fr; gap:28px}
 @media(max-width:860px){.grid2{grid-template-columns:1fr}}
@@ -167,6 +192,8 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
 <nav>
   <div class="wrap">
     <span class="brand">🌿 Spokojne miejsca pod Warszawą</span>
+    <a href="#oferty">Oferty</a>
+    <a href="#kryteria">Kryteria</a>
     <a href="#mapa">Mapa</a>
     <a href="#ranking">Ranking</a>
     <a href="#karty">Karty miejsc</a>
@@ -197,6 +224,94 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
     </div>
   </div>
 </header>
+
+
+<!-- ================= OFERTY ================= -->
+<section id="oferty">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Oferty warte obejrzenia</h2>
+        <p>Automatycznie pobrane z Otodom, Morizonu, Gratki (opcjonalnie OLX), przeliczone na wspólne metryki
+           i ocenione według kryteriów z sekcji <a href="#kryteria">Kryteria</a>.</p>
+      </div>
+      <div class="run-meta" id="runMeta"></div>
+    </div>
+
+    <div class="controls" id="offerFilters">
+      <button class="chip" data-filter="all" aria-pressed="true">Wszystkie</button>
+      <button class="chip" data-filter="budget" aria-pressed="false">💸 ≤ 1,25 mln</button>
+      <button class="chip" data-filter="area" aria-pressed="false">📐 ≥ 120 m²</button>
+      <button class="chip" data-filter="plot" aria-pressed="false">🌳 działka ≥ 600 m²</button>
+      <button class="chip" data-filter="private" aria-pressed="false">🤝 bez pośrednika</button>
+      <span style="flex:1"></span>
+      <select id="offerSort" class="chip" style="cursor:pointer">
+        <option value="score">Sortuj: ocena</option>
+        <option value="price">Cena rosnąco</option>
+        <option value="area">Powierzchnia malejąco</option>
+        <option value="ppm2">Cena/m² rosnąco</option>
+      </select>
+    </div>
+
+    <div id="offerCount" class="note" style="margin-bottom:12px"></div>
+    <div class="offer-grid" id="offerGrid"></div>
+    <div style="text-align:center;margin-top:18px">
+      <button class="chip" id="showMore" style="display:none"></button>
+    </div>
+    <div class="offers-empty" id="offersEmpty" style="display:none">
+      Brak danych o ofertach. Uruchom skill <code>warsaw-house-hunt</code>, żeby je pobrać.
+    </div>
+  </div>
+</section>
+
+<!-- ================= KRYTERIA ================= -->
+<section id="kryteria">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <h2>Kryteria oceny</h2>
+        <p>Każda oferta przechodzi najpierw filtry twarde, potem dostaje punkty w sześciu wymiarach.
+           Progi cenowe wynikają z analizy budżetu (rata ≤ 5 000 zł/mies., wkład własny ~550 tys. zł).</p>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>Filtry twarde</h3>
+        <ul style="font-size:14px">
+          <li><b>Typ:</b> dom (wolnostojący, bliźniak, segment) — nie działka, nie lokal.</li>
+          <li><b>Powierzchnia:</b> minimum <b id="critArea">90</b> m².</li>
+          <li><b>Cena:</b> maksymalnie <b id="critMax">1 400 000</b> zł.</li>
+          <li><b>Lokalizacja:</b> jedna z 23 analizowanych miejscowości, dojazd ≤ 60 min.</li>
+          <li><b>Wykluczenia:</b> licytacje, udziały, służebności, działki rolne, wynajem.</li>
+        </ul>
+        <h3 style="margin-top:22px">Progi budżetowe</h3>
+        <ul style="font-size:14px">
+          <li><b>Komfort:</b> ≤ <span id="critComfort">1 250 000</span> zł — rata ok. 4 500–4 800 zł.</li>
+          <li><b>Akceptowalne:</b> ≤ <span id="critAccept">1 350 000</span> zł.</li>
+          <li><b>Sufit:</b> ≤ <span id="critHard">1 400 000</span> zł — bez bufora na podwyżki stóp.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Punktacja (0–100)</h3>
+        <div class="tablewrap">
+          <table class="crit-table" style="min-width:0">
+            <thead><tr><th style="text-align:left">Kryterium</th><th>Waga</th><th style="text-align:left">Jak liczone</th></tr></thead>
+            <tbody>
+              <tr><td>Cena vs budżet</td><td>30%</td><td style="text-align:left">100 pkt do progu komfort, liniowo do 0 na suficie</td></tr>
+              <tr><td>Lokalizacja</td><td>25%</td><td style="text-align:left">ocena miejscowości z analizy × 10</td></tr>
+              <tr><td>Cena za m²</td><td>20%</td><td style="text-align:left">względem benchmarku lokalnego</td></tr>
+              <tr><td>Powierzchnia</td><td>10%</td><td style="text-align:left">90 m² = 50 pkt, ≥ 160 m² = 100 pkt</td></tr>
+              <tr><td>Działka</td><td>10%</td><td style="text-align:left">≥ 600 m² = 80 pkt, ≥ 1000 m² = 100 pkt</td></tr>
+              <tr><td>Stan z opisu</td><td>5%</td><td style="text-align:left">„do remontu" obniża, „nowy" podwyższa</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:12px">Na stronę trafia maksymalnie <b id="critLimit">60</b> ofert z oceną ≥ <b id="critMin">60</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ================= MAPA ================= -->
 <section id="mapa">
@@ -486,7 +601,7 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
 
 <footer>
   <div class="wrap">
-    Opracowanie: 24 października 2026 · dane cenowe: X 2026 · <span id="footCount"></span> miejscowości · mapa: Esri World Imagery
+    Opracowanie: 24 października 2026 · dane cenowe: X 2026 · <span id="footCount"></span> miejscowości · <span id="footOffers"></span> · mapa: Esri World Imagery
   </div>
 </footer>
 
@@ -858,6 +973,112 @@ bars(document.getElementById('landBars'), 'plot', 900000, v=>(v/1000).toFixed(0)
 bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFixed(2).replace('.',','), null);
 
 document.getElementById('footCount').textContent = TOWNS.length;
+</script>
+
+<script src="offers.js"></script>
+<script>
+(function () {
+  var data = window.OFFERS_DATA;
+  var grid = document.getElementById('offerGrid');
+  var empty = document.getElementById('offersEmpty');
+  var countEl = document.getElementById('offerCount');
+  var metaEl = document.getElementById('runMeta');
+  if (!data || !data.offers || !data.offers.length) {
+    if (grid) grid.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  var meta = data.meta;
+  var offers = data.offers;
+  var fmt = function (n) { return n.toLocaleString('pl-PL'); };
+  var dateStr = new Date(meta.generated_at).toLocaleString('pl-PL', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  var sourceNames = Object.keys(meta.sources).filter(function (k) { return meta.sources[k].count; })
+    .map(function (k) { return meta.sources[k].label + ' ' + meta.sources[k].count; }).join(' · ');
+  metaEl.innerHTML =
+    '<span>🛠 skrypt <b>v' + meta.version + '</b></span>' +
+    '<span>🕒 <b>' + dateStr + '</b></span>' +
+    '<span>📦 ' + fmt(meta.counts.scraped) + ' pobranych → ' + fmt(meta.counts.after_filters) + ' po filtrach</span>' +
+    '<span>✅ <b>' + fmt(meta.counts.published) + '</b> na liście</span>' +
+    '<span>🌐 ' + sourceNames + '</span>';
+
+  var setText = function (id, value) { var el = document.getElementById(id); if (el) el.textContent = value; };
+  setText('critMax', fmt(meta.thresholds.hard_max_price));
+  setText('critHard', fmt(meta.thresholds.hard_max_price));
+  setText('critComfort', fmt(meta.thresholds.comfort_max_price));
+  setText('critAccept', fmt(meta.thresholds.acceptable_max_price));
+  setText('critArea', meta.thresholds.min_area_m2);
+  setText('critMin', meta.thresholds.min_score_publish || 60);
+  setText('critLimit', fmt(meta.thresholds.max_publish || offers.length));
+  setText('footOffers', 'oferty: v' + meta.version + ' z ' + dateStr);
+
+  var state = { filter: 'all', sort: 'score', visible: 9 };
+
+  function pass(o) {
+    if (state.filter === 'budget') return o.price <= meta.thresholds.comfort_max_price;
+    if (state.filter === 'area') return o.area_m2 >= 120;
+    if (state.filter === 'plot') return (o.plot_m2 || 0) >= 600;
+    if (state.filter === 'private') return !!o.is_private;
+    return true;
+  }
+  function sortFn(a, b) {
+    if (state.sort === 'price') return a.price - b.price;
+    if (state.sort === 'area') return b.area_m2 - a.area_m2;
+    if (state.sort === 'ppm2') return (a.price_m2 || 9e9) - (b.price_m2 || 9e9);
+    return b.score - a.score;
+  }
+  function scoreColor(s) { return s >= 80 ? '#1f6b45' : s >= 70 ? '#4f9a5f' : s >= 60 ? '#8a9a3f' : '#e0a13a'; }
+
+  function render() {
+    var rows = offers.filter(pass).sort(sortFn);
+    var shown = rows.slice(0, state.visible);
+    countEl.textContent = 'Pokazano ' + shown.length + ' z ' + rows.length + ' pasujących ofert (łącznie ' + offers.length + ')';
+    grid.innerHTML = shown.map(function (o) {
+      var media = o.image
+        ? '<img loading="lazy" src="' + o.image + '" alt="">'
+        : '<div class="ph">brak zdjęcia</div>';
+      var tags = (o.tags || []).map(function (t) { return '<span class="mini">' + t + '</span>'; }).join('');
+      var warn = (o.warnings || []).slice(0, 2).map(function (w) { return '<div class="offer-warn">⚠ ' + w + '</div>'; }).join('');
+      var plot = o.plot_m2 ? fmt(o.plot_m2) + ' m²' : '—';
+      return '<article class="offer">' +
+        '<div class="offer-media">' + media +
+          '<div class="offer-score" style="background:' + scoreColor(o.score) + '">' + o.score.toFixed(1).replace('.', ',') + '</div>' +
+          '<div class="offer-src">' + o.source + '</div>' +
+        '</div>' +
+        '<div class="offer-body">' +
+          '<div class="offer-loc">📍 ' + (o.location_name || o.city) + ' · ' + (o.location_commute || '?') + ' min</div>' +
+          '<h3>' + o.title + '</h3>' +
+          '<div class="offer-price">' + fmt(o.price) + ' zł</div>' +
+          '<div class="offer-metrics"><span>' + o.area_m2 + ' m²</span><span>' + fmt(o.price_m2) + ' zł/m²</span><span>działka ' + plot + '</span></div>' +
+          '<div class="chiprow">' + tags + '</div>' + warn +
+          '<a class="offer-link" href="' + o.url + '" target="_blank" rel="noopener">Zobacz ofertę ↗</a>' +
+        '</div></article>';
+    }).join('');
+    var more = document.getElementById('showMore');
+    if (more) {
+      if (rows.length > shown.length) {
+        more.style.display = 'inline-block';
+        more.textContent = 'Pokaż więcej (' + (rows.length - shown.length) + ' pozostało)';
+      } else {
+        more.style.display = 'none';
+      }
+    }
+  }
+
+  document.querySelectorAll('#offerFilters .chip[data-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#offerFilters .chip[data-filter]').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      state.filter = btn.dataset.filter;
+      state.visible = 9;
+      render();
+    });
+  });
+  var sortEl = document.getElementById('offerSort');
+  if (sortEl) sortEl.addEventListener('change', function () { state.sort = sortEl.value; state.visible = 9; render(); });
+  var moreBtn = document.getElementById('showMore');
+  if (moreBtn) moreBtn.addEventListener('click', function () { state.visible += 12; render(); });
+  render();
+})();
 </script>
 </body>
 </html>
