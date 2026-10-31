@@ -249,6 +249,7 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
       <button class="chip" data-filter="budget" aria-pressed="false">💸 ≤ 1,25 mln</button>
       <button class="chip" data-filter="area" aria-pressed="false">📐 ≥ 120 m²</button>
       <button class="chip" data-filter="plot" aria-pressed="false">🌳 działka ≥ 600 m²</button>
+      <button class="chip" data-filter="commute" aria-pressed="false">🚆 dojazd ≤ 45 min</button>
       <button class="chip" data-filter="private" aria-pressed="false">🤝 bez pośrednika</button>
       <span style="flex:1"></span>
       <select id="offerSort" class="chip" style="cursor:pointer">
@@ -982,7 +983,7 @@ bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFix
 document.getElementById('footCount').textContent = TOWNS.length;
 </script>
 
-<script src="offers.js?v=1793450720"></script>
+<script src="offers.js?v=1793451406"></script>
 <script>
 (function () {
   var data = window.OFFERS_DATA;
@@ -1025,6 +1026,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
     if (state.filter === 'budget') return o.price <= meta.thresholds.comfort_max_price;
     if (state.filter === 'area') return o.area_m2 >= 120;
     if (state.filter === 'plot') return (o.plot_m2 || 0) >= 600;
+    if (state.filter === 'commute') return (o.commute_min || o.location_commute || 999) <= 45;
     if (state.filter === 'private') return !!o.is_private;
     return true;
   }
@@ -1061,7 +1063,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
           '<div class="offer-verdict" style="background:' + verdictColor + '">' + verdictLabel + '</div>' +
         '</div>' +
         '<div class="offer-body">' +
-          '<div class="offer-loc">📍 ' + (o.location_name || o.city) + ' · ' + (o.location_commute || '?') + ' min</div>' +
+          '<div class="offer-loc">📍 ' + (o.location_name || o.city) + ' · ' + (o.commute_min || o.location_commute || '?') + ' min</div>' +
           '<h3>' + o.title + '</h3>' +
           '<div class="offer-price">' + fmt(o.price) + ' zł</div>' +
           '<div class="offer-metrics"><span>' + o.area_m2 + ' m²</span><span>' + fmt(o.price_m2) + ' zł/m²</span><span>działka ' + plot + '</span></div>' +
