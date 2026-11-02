@@ -248,7 +248,7 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
       <button class="chip" data-filter="all" aria-pressed="true">Wszystkie</button>
       <button class="chip" data-filter="budget" aria-pressed="false">💸 ≤ 1,25 mln</button>
       <button class="chip" data-filter="area" aria-pressed="false">📐 ≥ 120 m²</button>
-      <button class="chip" data-filter="plot" aria-pressed="false">🌳 działka ≥ 600 m²</button>
+      <button class="chip" data-filter="plot" aria-pressed="false">🌳 działka ≥ 800 m²</button>
       <button class="chip" data-filter="commute" aria-pressed="false">🚆 dojazd ≤ 45 min</button>
       <button class="chip" data-filter="private" aria-pressed="false">🤝 bez pośrednika</button>
       <span style="flex:1"></span>
@@ -287,8 +287,9 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
       <div>
         <h3>Filtry twarde</h3>
         <ul style="font-size:14px">
-          <li><b>Typ:</b> dom (wolnostojący, bliźniak, segment) — nie działka, nie lokal.</li>
+          <li><b>Typ:</b> dom wolnostojący — nie bliźniak, nie segment, nie lokal.</li>
           <li><b>Powierzchnia:</b> minimum <b id="critArea">90</b> m².</li>
+          <li><b>Działka:</b> minimum <b id="critPlot">800</b> m².</li>
           <li><b>Cena:</b> maksymalnie <b id="critMax">1 400 000</b> zł.</li>
           <li><b>Lokalizacja:</b> jedna z 23 analizowanych miejscowości, dojazd ≤ 60 min.</li>
           <li><b>Wykluczenia:</b> licytacje, udziały, służebności, działki rolne, wynajem.</li>
@@ -310,7 +311,7 @@ footer{padding:40px 0 70px; color:var(--muted); font-size:13px}
               <tr><td>Lokalizacja</td><td>25%</td><td style="text-align:left">ocena miejscowości z analizy × 10</td></tr>
               <tr><td>Cena za m²</td><td>20%</td><td style="text-align:left">względem benchmarku lokalnego</td></tr>
               <tr><td>Powierzchnia</td><td>10%</td><td style="text-align:left">90 m² = 50 pkt, ≥ 160 m² = 100 pkt</td></tr>
-              <tr><td>Działka</td><td>10%</td><td style="text-align:left">≥ 600 m² = 80 pkt, ≥ 1000 m² = 100 pkt</td></tr>
+              <tr><td>Działka</td><td>10%</td><td style="text-align:left">≥ 800 m² = 60 pkt, 1000 m² = 100 pkt (powyżej bez dodatkowych punktów)</td></tr>
               <tr><td>Stan z opisu</td><td>5%</td><td style="text-align:left">„do remontu" obniża, „nowy" podwyższa</td></tr>
             </tbody>
           </table>
@@ -983,7 +984,7 @@ bars(document.getElementById('houseBars'), 'house150', 2200000, v=>(v/1e6).toFix
 document.getElementById('footCount').textContent = TOWNS.length;
 </script>
 
-<script src="offers.js?v=1793528342"></script>
+<script src="offers.js?v=1793613706"></script>
 <script>
 (function () {
   var data = window.OFFERS_DATA;
@@ -1016,6 +1017,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
   setText('critComfort', fmt(meta.thresholds.comfort_max_price));
   setText('critAccept', fmt(meta.thresholds.acceptable_max_price));
   setText('critArea', meta.thresholds.min_area_m2);
+  setText('critPlot', meta.thresholds.min_plot_m2 || 800);
   setText('critMin', meta.thresholds.min_score_publish || 60);
   setText('critLimit', fmt(meta.thresholds.max_publish || offers.length));
   setText('footOffers', 'oferty: v' + meta.version + ' z ' + dateStr);
@@ -1025,7 +1027,7 @@ document.getElementById('footCount').textContent = TOWNS.length;
   function pass(o) {
     if (state.filter === 'budget') return o.price <= meta.thresholds.comfort_max_price;
     if (state.filter === 'area') return o.area_m2 >= 120;
-    if (state.filter === 'plot') return (o.plot_m2 || 0) >= 600;
+    if (state.filter === 'plot') return (o.plot_m2 || 0) >= 800;
     if (state.filter === 'commute') return (o.commute_min || o.location_commute || 999) <= 45;
     if (state.filter === 'private') return !!o.is_private;
     return true;
